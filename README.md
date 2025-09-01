@@ -1,5 +1,5 @@
 # prompts
-Universal Data Analysis Prompt Library
+ Data Analysis Prompt Library
  A flexible set of prompt templates for any data analysis context (not limited to payments or accounting).
  These prompts cover problem definition, data exploration, cleaning, modeling, visualization, and
  stakeholder communication. Replace placeholders like 
