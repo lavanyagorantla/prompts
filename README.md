@@ -79,4 +79,223 @@ higher frequency.
  10) Request Anything Else
  If given a sample dataset or schema, generate: cleaning script, EDA notebook, 
 visualization, or predictive model with explanations.
+
+
+
+
+# Universal Data Analysis Prompt Library with Code Templates
+
+This library provides prompt templates **and ready-to-use code skeletons (SQL + Python)** for general data analysis workflows. Replace placeholders like `[DATA_SOURCE]`, `[DATE_RANGE]`, `[METRIC]`, `[TABLE_NAME]`, `[COLUMN_NAME]`.
+
+---
+
+## 1) Data Collection & Cleaning
+
+**Prompt:**
+
+```
+Clean the dataset from [DATA_SOURCE]. Handle missing values, outliers, and duplicates.
+Generate both SQL and Python (Pandas) scripts.
+```
+
+**Python (Pandas) Template:**
+
+```python
+import pandas as pd
+
+df = pd.read_csv("[DATA_SOURCE]")
+
+# Handle missing values
+df.fillna({"[COLUMN_NAME]": 0}, inplace=True)
+
+# Remove duplicates
+df.drop_duplicates(inplace=True)
+
+# Handle outliers using IQR
+Q1 = df['[COLUMN_NAME]'].quantile(0.25)
+Q3 = df['[COLUMN_NAME]'].quantile(0.75)
+IQR = Q3 - Q1
+lower = Q1 - 1.5 * IQR
+upper = Q3 + 1.5 * IQR
+df = df[(df['[COLUMN_NAME]'] >= lower) & (df['[COLUMN_NAME]'] <= upper)]
+```
+
+**SQL Template:**
+
+```sql
+SELECT *
+FROM [TABLE_NAME]
+WHERE [COLUMN_NAME] IS NOT NULL
+  AND [COLUMN_NAME] BETWEEN PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY [COLUMN_NAME]) - 1.5 * (PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY [COLUMN_NAME]) - PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY [COLUMN_NAME]))
+  AND PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY [COLUMN_NAME]) + 1.5 * (PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY [COLUMN_NAME]) - PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY [COLUMN_NAME]));
+```
+
+---
+
+## 2) Exploratory Data Analysis (EDA)
+
+**Prompt:**
+
+```
+Perform EDA on [DATA_SOURCE]. Provide summary statistics, missing data visualization, and correlation heatmap.
+```
+
+**Python Template:**
+
+```python
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+print(df.describe())
+print(df.isnull().sum())
+
+# Correlation heatmap
+sns.heatmap(df.corr(), annot=True, fmt='.2f')
+plt.show()
+```
+
+---
+
+## 3) Metric Computation
+
+**Prompt:**
+
+```
+Calculate [METRIC] (e.g., conversion_rate) grouped by [DIMENSION]. Provide SQL and Python versions.
+```
+
+**SQL Template:**
+
+```sql
+SELECT [DIMENSION],
+       SUM(CASE WHEN [CONDITION] THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS [METRIC]
+FROM [TABLE_NAME]
+GROUP BY [DIMENSION];
+```
+
+**Python Template:**
+
+```python
+metric_df = df.groupby('[DIMENSION]').apply(
+    lambda x: (x['[CONDITION_COLUMN]'] == '[CONDITION_VALUE]').sum() / len(x)
+).reset_index(name='[METRIC]')
+```
+
+---
+
+## 4) Forecasting
+
+**Prompt:**
+
+```
+Forecast [METRIC] for the next [N] periods using ARIMA.
+```
+
+**Python Template:**
+
+```python
+from statsmodels.tsa.arima.model import ARIMA
+
+series = df['[METRIC]']
+model = ARIMA(series, order=(1,1,1))
+model_fit = model.fit()
+forecast = model_fit.forecast(steps=[N])
+print(forecast)
+```
+
+---
+
+## 5) Root Cause Analysis (RCA)
+
+**Prompt:**
+
+```
+Identify the root cause for a sudden change in [METRIC] over [DATE_RANGE]. Segment by [DIMENSION].
+```
+
+**Python Template:**
+
+```python
+segment_analysis = df.groupby('[DIMENSION]')['[METRIC]'].mean().sort_values(ascending=False)
+print(segment_analysis.head(10))
+```
+
+---
+
+## 6) Dashboarding & Visualization
+
+**Prompt:**
+
+```
+Create a dashboard layout for [KPIs] with filters for [DIMENSIONS].
+```
+
+* **Suggested Tools:** Tableau, Power BI, or Python (Plotly/Dash)
+
+**Python (Plotly) Template:**
+
+```python
+import plotly.express as px
+
+fig = px.line(df, x='[DATE_COLUMN]', y='[METRIC]', color='[DIMENSION]')
+fig.show()
+```
+
+---
+
+## 7) Automation & Alerts
+
+**Prompt:**
+
+```
+Set up an automated alert if [METRIC] drops by more than X% week-over-week.
+```
+
+**Python Template:**
+
+```python
+threshold = 0.1  # 10%
+latest = df['[METRIC]'].iloc[-1]
+previous = df['[METRIC]'].iloc[-2]
+
+if (previous - latest) / previous > threshold:
+    print("Alert: Metric dropped significantly!")
+```
+
+---
+
+## 8) Communication & Reporting
+
+**Prompt:**
+
+```
+Draft an executive summary of findings from the dataset: key metrics, trends, and recommendations.
+```
+
+**Structure:**
+
+* Context
+* Key Findings
+* Supporting Evidence
+* Recommendations
+* Next Steps
+
+---
+
+## 9) Continuous Monitoring
+
+**Prompt:**
+
+```
+Create a script to track [METRIC] daily and send a summary report every morning.
+```
+
+---
+
+## 10) Request for Custom Code
+
+```
+If I provide a sample dataset, generate SQL + Python code to clean, analyze, and visualize it end-to-end.
+```
+
  
